@@ -383,6 +383,57 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
   .recap-g{grid-template-columns:repeat(2,1fr)}
   .cinput{width:42px;height:58px;font-size:26px}
 }
+
+/* ── MEMORY GAME ── */
+.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:620px;margin:0 auto 20px}
+.mem-card{position:relative;height:110px;cursor:pointer;perspective:700px;user-select:none}
+.mem-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.mem-card.flipped .mem-inner,.mem-card.matched .mem-inner{transform:rotateY(180deg)}
+.mem-back,.mem-front{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--border)}
+.mem-back{background:rgba(40,20,80,.85);font-size:32px;color:rgba(120,80,200,.6)}
+.mem-back::after{content:'?';font-family:var(--title);font-size:40px;color:rgba(120,80,200,.4)}
+.mem-front{transform:rotateY(180deg);padding:10px;text-align:center;gap:5px}
+.mem-tool{background:rgba(76,151,255,.15);border-color:rgba(76,151,255,.5)}
+.mem-def{background:rgba(255,171,25,.1);border-color:rgba(255,171,25,.4)}
+.mem-ico{font-size:28px;display:block}
+.mem-txt{font-size:11px;line-height:1.4;font-weight:700;color:#fff}
+.mem-card.matched .mem-front{border-color:var(--green)!important;background:rgba(92,184,92,.15)!important;box-shadow:0 0 14px rgba(92,184,92,.3)}
+.mem-card.wrong-flash .mem-inner{animation:memWrong .55s ease}
+@keyframes memWrong{0%,100%{transform:rotateY(180deg)}40%{transform:rotateY(195deg) scale(.97)}60%{transform:rotateY(175deg)}}
+
+/* ── PIPE PUZZLE ── */
+#pipe-canvas{cursor:pointer;border-radius:10px;background:#09060e}
+.pipe-hint{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;
+  margin-top:8px;line-height:1.7}
+
+
+/* ── BONUS MINI-GAMES ── */
+.bonus-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--title);
+  font-size:13px;letter-spacing:3px;color:var(--amber);border:2px solid var(--amber);
+  border-radius:20px;padding:4px 18px;background:rgba(255,187,0,.07);margin-bottom:10px}
+.bonus-footer{text-align:center;margin-top:18px;min-height:36px}
+.bonus-cnt{display:none}
+/* Wire game */
+.wire-wrap{display:flex;align-items:stretch;gap:0;max-width:560px;margin:0 auto 12px;position:relative;min-height:260px}
+.wire-col{display:flex;flex-direction:column;justify-content:space-around;width:110px;gap:0;flex-shrink:0}
+.wire-svg{flex:1;pointer-events:none}
+.wire-term{border-radius:8px;padding:10px 10px;cursor:pointer;font-weight:700;font-size:12px;
+  border:2px solid;text-align:center;transition:all .2s;user-select:none;
+  background:rgba(0,0,0,.35);letter-spacing:1px}
+.wire-term:hover:not(.wmatched){filter:brightness(1.3);transform:scale(1.04)}
+.wire-term.wselected{box-shadow:0 0 16px;transform:scale(1.06)}
+.wire-term.wmatched{opacity:.55;cursor:default;transform:none}
+/* Gear game */
+#gear-canvas{display:block;margin:0 auto;border-radius:10px;background:#09060e;cursor:pointer}
+.gear-options{display:flex;gap:12px;justify-content:center;margin:14px 0 4px;flex-wrap:wrap}
+.gear-opt{border-radius:8px;padding:10px 18px;cursor:pointer;font-family:var(--mono);font-size:13px;
+  border:2px solid rgba(120,60,220,.3);background:rgba(20,10,40,.7);color:var(--text);
+  transition:all .2s;user-select:none}
+.gear-opt:hover{border-color:var(--amber);color:var(--amber)}
+.gear-opt.gsel{border-color:var(--amber);background:rgba(255,187,0,.12);color:var(--amber);box-shadow:0 0 12px rgba(255,187,0,.3)}
+.gear-opt.gused{opacity:.3;cursor:default}
+
 </style>
 </head>
 <body>
@@ -414,7 +465,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
     <div class="step-dot" id="dot-6">6</div><div class="step-line" id="line-6"></div>
     <div class="step-dot" id="dot-7">7</div><div class="step-line" id="line-7"></div>
     <div class="step-dot" id="dot-8">8</div><div class="step-line" id="line-8"></div>
-    <div class="step-dot" id="dot-9">🔓</div>
+    <div class="step-dot" id="dot-9">9</div><div class="step-line" id="line-9"></div>
+    <div class="step-dot" id="dot-10">10</div><div class="step-line" id="line-10"></div>
+    <div class="step-dot" id="dot-11">🔓</div>
   </div>
   <div id="timer">25:00</div>
 </header>
@@ -827,14 +880,126 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
       <input class="cinput" id="ci-4" maxlength="1" type="text" placeholder="?" oninput="nci(this,5)"/>
       <input class="cinput" id="ci-5" maxlength="1" type="text" placeholder="?" oninput="nci(this,6)"/>
       <input class="cinput" id="ci-6" maxlength="1" type="text" placeholder="?" oninput="nci(this,7)"/>
-      <input class="cinput" id="ci-7" maxlength="1" type="text" placeholder="?" oninput="checkFull()"/>
+      <input class="cinput" id="ci-7" maxlength="1" type="text" placeholder="?" oninput="nci(this,8)"/>
+      <input class="cinput" id="ci-8" maxlength="1" type="text" placeholder="?" oninput="nci(this,9)"/>
+      <input class="cinput" id="ci-9" maxlength="1" type="text" placeholder="?" oninput="checkFull()"/>
     </div>
-    <div class="clbls"><span>Sys.1</span><span>Sys.2</span><span>Sys.3</span><span>Sys.4</span><span>Sys.5</span><span>Sys.6</span><span>Sys.7</span><span>Sys.8</span></div>
+    <div class="clbls"><span>Sys.1</span><span>Sys.2</span><span>Sys.3</span><span>Sys.4</span><span>Sys.5</span><span>Sys.6</span><span>Sys.7</span><span>Sys.8</span><span>Jeu 1</span><span>Jeu 2</span></div>
     <div class="cerr" id="cerr">❌ Code incorrect — vérifie tes notes !</div>
     <button class="btn btn-a" style="font-size:15px;padding:13px 36px;margin-bottom:12px" onclick="checkFinal()">🔓 DÉVERROUILLER</button>
     <div><button class="btn btn-p" style="font-size:10px;padding:6px 12px;opacity:.5" onclick="toggleHint()">💡 Indice</button></div>
     <div id="hintbox" style="display:none;margin-top:10px;font-size:10px;color:var(--muted);line-height:2.2;padding:12px;border:1px solid var(--border);border-radius:6px;background:rgba(0,0,0,.3)">
-      1→Schéma | 2→Outils | 3→Engrenages | 4→Ordre réparation | 5→Électronique | 6→Blocs ordre | 7→Blocs lecture | 8→Chaîne énergie
+      1→Schéma | 2→Outils | 3→Engrenages | 4→Procédures | 5→Électronique | 6→Blocs ord. | 7→Blocs lect. | 8→Chaîne | 9→Memory | 10→Tuyaux
+    </div>
+  </div>
+</section>
+
+
+<!-- ══ MINIJEU 1: MEMORY ══ -->
+<section class="screen" id="screen-room-mem">
+  <div class="rwrap">
+    <div class="rhead">
+      <div class="stag">🃏 MINIJEU 1/2 — RESTAURATION MÉMORIELLE</div>
+      <h2 class="rttl">Memory — Associe les Outils !</h2>
+      <div class="rinstr">
+        Les fiches de l'atelier sont éparpillées. <strong>Clique sur 2 cartes</strong> pour les retourner.<br>
+        Retrouve les <strong>4 paires</strong> outil + fonction pour restaurer la mémoire de ROUILLO !
+      </div>
+    </div>
+    <div class="mem-grid" id="mem-grid"></div>
+    <div style="text-align:center;font-family:var(--mono);font-size:13px;color:var(--muted);min-height:22px" id="mem-status">0 / 4 paires trouvées</div>
+    <div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--red);margin-top:5px;min-height:16px" id="mem-errs"></div>
+  </div>
+</section>
+
+<!-- ══ MINIJEU 2: PIPE PUZZLE ══ -->
+<section class="screen" id="screen-room-pipe">
+  <div class="rwrap">
+    <div class="rhead">
+      <div class="stag">🔧 MINIJEU 2/2 — RESTAURATION HYDRAULIQUE</div>
+      <h2 class="rttl">Répare le Circuit Hydraulique !</h2>
+      <div class="rinstr">
+        La surtension a désaligné les tuyaux de refroidissement de ROUILLO.<br>
+        <strong>Clique sur chaque segment</strong> pour le faire pivoter. Relie la <strong style="color:var(--cyan)">SOURCE</strong> à l'<strong style="color:var(--green)">ARRIVÉE</strong> !
+      </div>
+    </div>
+    <canvas id="pipe-canvas" width="460" height="340"></canvas>
+    <div class="pipe-hint">💡 Chaque clic fait pivoter un tuyau de 90°. Tous les tuyaux posés doivent être connectés !</div>
+    <div style="text-align:center;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:10px;min-height:22px" id="pipe-status">Aligne les tuyaux pour connecter le circuit...</div>
+  </div>
+</section>
+
+
+<!-- ══ BONUS: MEMORY ══ -->
+<section class="screen" id="screen-bonus-mem">
+  <div class="rwrap" style="max-width:680px">
+    <div class="rhead">
+      <div class="bonus-badge">⭐ BONUS 1/4 — Mini-jeu</div>
+      <h2 class="rttl">Memory Express !</h2>
+      <div class="rinstr">Retrouve les 3 paires outil + fonction avant de continuer.<br><strong>Ce bonus ne donne pas de chiffre secret</strong> — juste de l'entraînement !</div>
+    </div>
+    <div class="mem-grid" id="bmem-grid" style="grid-template-columns:repeat(3,1fr);max-width:480px"></div>
+    <div style="text-align:center;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:8px;min-height:20px" id="bmem-status">0 / 3 paires</div>
+    <div class="bonus-footer">
+      <button class="btn btn-a bonus-cnt" id="bmem-btn" onclick="continueBonusGame(2)">⭐ Continuer vers l'Énigme 2 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BONUS: WIRE ══ -->
+<section class="screen" id="screen-bonus-wire">
+  <div class="rwrap" style="max-width:680px">
+    <div class="rhead">
+      <div class="bonus-badge">⭐ BONUS 2/4 — Mini-jeu</div>
+      <h2 class="rttl">Câblage Électrique !</h2>
+      <div class="rinstr">Relie chaque fil à la bonne borne. <strong>Clique sur un fil</strong> à gauche, puis sur la <strong>borne correspondante</strong> à droite.</div>
+    </div>
+    <div class="wire-wrap">
+      <div class="wire-col" id="wire-src-col"></div>
+      <svg id="wire-svg" style="flex:1;overflow:visible"></svg>
+      <div class="wire-col" id="wire-dst-col"></div>
+    </div>
+    <div style="text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);min-height:18px" id="wire-status">0 / 4 fils connectés</div>
+    <div class="bonus-footer">
+      <button class="btn btn-a bonus-cnt" id="bwire-btn" onclick="continueBonusGame(3)">⭐ Continuer vers l'Énigme 3 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BONUS: GEAR PLACEMENT ══ -->
+<section class="screen" id="screen-bonus-gear">
+  <div class="rwrap" style="max-width:680px">
+    <div class="rhead">
+      <div class="bonus-badge">⭐ BONUS 3/4 — Mini-jeu</div>
+      <h2 class="rttl">Place les Engrenages !</h2>
+      <div class="rinstr">
+        Le moteur (roue A, 20 dents) entraîne deux roues vides.<br>
+        <strong>Objectif :</strong> Roue B = 2× plus rapide que A | Roue C = 2× plus lente que A<br>
+        Clique une roue ci-dessous pour la sélectionner, puis clique sur le slot B ou C.
+      </div>
+    </div>
+    <canvas id="gear-canvas" width="480" height="220"></canvas>
+    <div class="gear-options" id="gear-options"></div>
+    <div style="text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px;min-height:18px" id="gear-status">Sélectionne une roue puis place-la dans un slot</div>
+    <div class="bonus-footer">
+      <button class="btn btn-a bonus-cnt" id="bgear-btn" onclick="continueBonusGame(4)">⭐ Continuer vers l'Énigme 4 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BONUS: PIPE ══ -->
+<section class="screen" id="screen-bonus-pipe">
+  <div class="rwrap" style="max-width:680px">
+    <div class="rhead">
+      <div class="bonus-badge">⭐ BONUS 4/4 — Mini-jeu</div>
+      <h2 class="rttl">Circuit de Refroidissement !</h2>
+      <div class="rinstr">Un autre circuit à réparer ! <strong>Clique</strong> sur chaque tuyau pour le faire pivoter de 90°. Relie la <strong style="color:var(--cyan)">SOURCE</strong> à l'<strong style="color:var(--green)">ARRIVÉE</strong>.</div>
+    </div>
+    <canvas id="bonus-pipe-canvas" width="460" height="340"></canvas>
+    <div class="pipe-hint">💡 Nouveau circuit — nouvelle solution à trouver !</div>
+    <div style="text-align:center;font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:8px;min-height:22px" id="bpipe-status">Aligne les tuyaux...</div>
+    <div class="bonus-footer">
+      <button class="btn btn-a bonus-cnt" id="bpipe-btn" onclick="continueBonusGame(5)">⭐ Continuer vers l'Énigme 5 →</button>
     </div>
   </div>
 </section>
@@ -856,8 +1021,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
     <div class="wtitle">ATELIER DÉVERROUILLÉ !</div>
     <div class="wmsg" id="wmsg">
       <span>ROUILLO :</span> « TOUS MES SYSTÈMES SONT À 100% !<br>
-      📐 Schéma ✓ — 🛠️ Outils ✓ — ⚙ Engrenages ✓ — 🚗 Procédures ✓<br>
-      ⚡ Électronique ✓ — 🧩 Blocs ordre ✓ — 📖 Blocs lecture ✓ — 🔗 Chaîne énergie ✓<br>
+      📐 Schéma ✓ — 🛠️ Outils ✓ — ⚙ Engrenages ✓ — 🚗 Procédures ✓ — ⚡ Électronique ✓<br>
+      🧩 Blocs ordre ✓ — 📖 Blocs lecture ✓ — 🔗 Chaîne énergie ✓ — 🃏 Memory ✓ — 💧 Tuyaux ✓<br>
       Tu as tout réparé. Grâce à toi, l'ESTIC et MÉCANO-LAB sont libres !<br>
       Je te tire mon chapeau... et mes lasers ! »
     </div>
@@ -2750,8 +2915,8 @@ const CHAIN_QS=[
    opts:['TRAITER → ACQUÉRIR → COMMUNIQUER','ACQUÉRIR → TRAITER → COMMUNIQUER → AGIR','COMMUNIQUER → ACQUÉRIR → TRAITER','AGIR → TRAITER → ACQUÉRIR'],ans:1,col:'info'},
 ];
 
-const ROOM_CODES=['3','7','5','4','2','8','9','6'];
-const SECRET_CODE='37542896';
+const ROOM_CODES=['3','7','5','4','2','8','9','6','0','1'];
+const SECRET_CODE='3754289601';
 
 const ROOM_ANIME=[
   {title:'SYSTÈME OPTIQUE EN PANNE',sub:'Les yeux de ROUILLO ne voient plus rien...',emoji:'📐',col:'#5cb1d6',lc:'rgba(92,177,214,.5)',dur:3600},
@@ -2762,25 +2927,31 @@ const ROOM_ANIME=[
   {title:'UNITÉ LOGIQUE FRAGMENTÉE',sub:'Les programmes de ROUILLO sont en désordre total...',emoji:'🧩',col:'#9966ff',lc:'rgba(153,102,255,.5)',dur:3600},
   {title:'LECTURE DE CODE',sub:'ROUILLO ne sait plus lire ses propres programmes...',emoji:'📖',col:'#c084fc',lc:'rgba(192,132,252,.5)',dur:3500},
   {title:'CHAÎNE ÉNERGÉTIQUE ROMPUE',sub:'L\'énergie de ROUILLO s\'écoule sans contrôle...',emoji:'🔗',col:'#5cb85c',lc:'rgba(92,184,92,.5)',dur:3700},
+  {title:'MÉMOIRE EFFACÉE !',sub:'ROUILLO ne se souvient plus de ses propres outils...',emoji:'🃏',col:'#c084fc',lc:'rgba(192,132,252,.5)',dur:3200},
+  {title:'CIRCUIT DE REFROIDISSEMENT EN PANNE',sub:'Les tuyaux de ROUILLO sont tous désalignés...',emoji:'🔧',col:'#00e5ff',lc:'rgba(0,229,255,.5)',dur:3200},
 ];
 
 const IL_DATA=[
   {pct:14,status:'✓ SYSTÈME OPTIQUE RESTAURÉ',sys:'vision',
-   lines:[{t:'sys',s:'[ SYS 1/7 — OPTIQUE — RESTAURÉ ]'},{t:'',s:'Je vois à nouveau ! Les schémas techniques...'},{t:'warn',s:'Jante, disque, boulons, moyeu, étrier...'},{t:'',s:'Mes capteurs visuels sont opérationnels !'},{t:'hi',s:'6 autres systèmes à réparer. Continue !'}],btn:'Réparer le système suivant →',next:2},
+   lines:[{t:'sys',s:'[ SYS 1/7 — OPTIQUE — RESTAURÉ ]'},{t:'',s:'Je vois à nouveau ! Les schémas techniques...'},{t:'warn',s:'Jante, disque, boulons, moyeu, étrier...'},{t:'',s:'Mes capteurs visuels sont opérationnels !'},{t:'hi',s:'6 autres systèmes à réparer. Bonus en chemin !'}],btn:'⭐ Mini-jeu bonus →',next:'bm'},
   {pct:28,status:'✓ SYSTÈME MOTEUR RESTAURÉ',sys:'motor',
-   lines:[{t:'sys',s:'[ SYS 2/7 — MOTEUR — RESTAURÉ ]'},{t:'',s:'Mes bras fonctionnent à nouveau !'},{t:'warn',s:'Clé dynamométrique, pied à coulisse...'},{t:'',s:'Je peux saisir et utiliser tous les outils.'},{t:'hi',s:'5 systèmes encore endommagés.'}],btn:'Continuer →',next:3},
+   lines:[{t:'sys',s:'[ SYS 2/7 — MOTEUR — RESTAURÉ ]'},{t:'',s:'Mes bras fonctionnent à nouveau !'},{t:'warn',s:'Clé dynamométrique, pied à coulisse...'},{t:'',s:'Je peux saisir et utiliser tous les outils.'},{t:'hi',s:'Mini-jeu câblage avant la suite !'}],btn:'⭐ Mini-jeu bonus →',next:'bw'},
   {pct:43,status:'✓ PROCESSEUR RESTAURÉ',sys:'calc',
-   lines:[{t:'sys',s:'[ SYS 3/7 — CALCUL — RESTAURÉ ]'},{t:'',s:'Mon CPU redémarre !'},{t:'warn',s:'Rapport 20/40 = 0.5... B tourne à 30 tr/min...'},{t:'',s:'Les calculs de transmission me reviennent !'},{t:'hi',s:'4 systèmes encore à réparer.'}],btn:'Continuer →',next:4},
+   lines:[{t:'sys',s:'[ SYS 3/7 — CALCUL — RESTAURÉ ]'},{t:'',s:'Mon CPU redémarre !'},{t:'warn',s:'Rapport 20/40 = 0.5... B tourne à 30 tr/min...'},{t:'',s:'Les calculs de transmission me reviennent !'},{t:'hi',s:'Place les engrenages maintenant !'}],btn:'⭐ Mini-jeu bonus →',next:'bg'},
   {pct:57,status:'✓ MÉMOIRE PROCÉDURALE RESTAURÉE',sys:'memory',
-   lines:[{t:'sys',s:'[ SYS 4/7 — MÉMOIRE — RESTAURÉ ]'},{t:'',s:'Mes protocoles de sécurité sont de retour !'},{t:'warn',s:'Caler → desserrer → lever → changer → serrer...'},{t:'',s:'Je me souviens de chaque procédure.'},{t:'hi',s:'3 systèmes restants. Plus que la moitié !'}],btn:'Continuer →',next:5},
+   lines:[{t:'sys',s:'[ SYS 4/7 — MÉMOIRE — RESTAURÉ ]'},{t:'',s:'Mes protocoles de sécurité sont de retour !'},{t:'warn',s:'Caler → desserrer → lever → changer → serrer...'},{t:'',s:'Je me souviens de chaque procédure.'},{t:'hi',s:'3 systèmes restants. Circuit hydraulique bonus !'}],btn:'⭐ Mini-jeu bonus →',next:'bp'},
   {pct:71,status:'✓ CIRCUITS ÉLECTRONIQUES RESTAURÉS',sys:'circuits',
    lines:[{t:'sys',s:'[ SYS 5/7 — CIRCUITS — RESTAURÉ ]'},{t:'',s:'Plus d\'étincelles ! Mes circuits sont sains.'},{t:'warn',s:'Multimètre, ohm, ampère, fusible...'},{t:'',s:'L\'électronique est à nouveau sous contrôle.'},{t:'hi',s:'2 derniers systèmes. Tu y es presque !'}],btn:'Continuer →',next:6},
   {pct:75,status:'✓ UNITÉ LOGIQUE I — ORDRE RESTAURÉ',sys:'logic',
    lines:[{t:'sys',s:'[ SYS 6/8 — LOGIQUE I — RESTAURÉ ]'},{t:'',s:'Mon programme d\'exécution est restructuré !'},{t:'warn',s:'Scanner → Avancer → Saisir → Réparer → Vérifier'},{t:'',s:'Je peux à nouveau exécuter des missions simples.'},{t:'hi',s:'Mais je dois aussi réapprendre à LIRE le code !'}],btn:'Continuer →',next:'6b'},
   {pct:87,status:'✓ UNITÉ LOGIQUE II — LECTURE RESTAURÉE',sys:'logic',
    lines:[{t:'sys',s:'[ SYS 7/8 — LOGIQUE II — RESTAURÉ ]'},{t:'',s:'Je sais à nouveau analyser mes propres programmes !'},{t:'warn',s:'Boucles, conditions, types de blocs... tout est clair !'},{t:'',s:'Je peux lire et comprendre n\'importe quel code.'},{t:'hi',s:'DERNIER SYSTÈME. La chaîne énergétique !'}],btn:'Dernier système →',next:7},
-  {pct:99,status:'✓ TOUS LES SYSTÈMES RESTAURÉS',sys:'energy',
-   lines:[{t:'sys',s:'[ SYS 7/7 — CHAÎNE ÉNERGIE — RESTAURÉ ]'},{t:'warn',s:'RESTAURATION : 99%...'},{t:'',s:'Batterie → Fusible → Moteur → Bras...'},{t:'hi',s:'MES 7 SYSTÈMES SONT RESTAURÉS !'},{t:'',s:'Il ne reste qu\'une chose...'},{t:'warn',s:'Entre le code de déverrouillage à 7 chiffres.'},{t:'hi',s:'Libère-nous !'}],btn:'Entrer le code final →',next:8},
+  {pct:96,status:'✓ SYSTÈME ÉNERGÉTIQUE RESTAURÉ',sys:'energy',
+   lines:[{t:'sys',s:'[ SYS 7/8 — CHAÎNE ÉNERGIE — RESTAURÉ ]'},{t:'warn',s:'RESTAURATION : 96%...'},{t:'hi',s:'Presque là ! Deux derniers mini-jeux !'},{t:'',s:'Mon cerveau mémoriel et mon circuit hydraulique...'},{t:'warn',s:'Prouve que tu les maîtrises aussi !'}],btn:'Minijeu suivant →',next:'mem'},
+  {pct:98,status:'✓ MÉMOIRE OUTILS RESTAURÉE',sys:'logic',
+   lines:[{t:'sys',s:'[ MINIJEU 1 — MÉMOIRE OUTILS — VALIDÉ ]'},{t:'',s:'Je me souviens à nouveau de chaque outil !'},{t:'hi',s:'🔧📐⚡🔩 — Tout est revenu !'},{t:'warn',s:'Dernier test : le circuit hydraulique.'}],btn:'Réparer les tuyaux →',next:'pipe'},
+  {pct:99,status:'✓ TOUS LES SYSTÈMES À 100%',sys:'logic',
+   lines:[{t:'sys',s:'[ MINIJEU 2 — CIRCUIT HYDRAULIQUE — RÉPARÉ ]'},{t:'warn',s:'RESTAURATION : 99%...'},{t:'hi',s:'TOUS MES SYSTÈMES SONT À 100% !'},{t:'warn',s:'Entre le code de déverrouillage à 10 chiffres.'},{t:'hi',s:'LIBÈRE-NOUS !'}],btn:'Entrer le code final →',next:8},
 ];
 
 const SUC_DATA=[
@@ -2792,6 +2963,8 @@ const SUC_DATA=[
   {ico:'🧩',tit:'Unité Logique Restaurée !',sub:'Les programmes de ROUILLO s\'exécutent dans le bon ordre !'},
   {ico:'📖',tit:'Lecture de Code Restaurée !',sub:'ROUILLO sait à nouveau analyser et comprendre ses propres programmes !'},
   {ico:'🔗',tit:'Chaîne Énergétique Restaurée !',sub:'L\'énergie de ROUILLO circule parfaitement dans ses 7 systèmes !'},
+  {ico:'🃏',tit:'Mémoire des Outils Restaurée !',sub:'ROUILLO se souvient de chaque outil et de son usage !'},
+  {ico:'💧',tit:'Circuit Hydraulique Réparé !',sub:'Le liquide de refroidissement circule parfaitement. ROUILLO ne surchauffera plus !'},
 ];
 
 const SYS_MAP={
@@ -2832,7 +3005,7 @@ function stopTimer(){clearInterval(timerInt)}
 
 // ── PROGRESS ──────────────────────────────────────────────────────────────────
 function updateProg(room){
-  for(let i=1;i<=9;i++){
+  for(let i=1;i<=11;i++){
     const d=document.getElementById('dot-'+i);const l=document.getElementById('line-'+i);
     d.classList.remove('active','done');if(l)l.classList.remove('done');
     if(i<room){d.classList.add('done');if(l)l.classList.add('done')}else if(i===room)d.classList.add('active');
@@ -2907,7 +3080,15 @@ function showInterlude(completedRoom){
 }
 function continueFromInterlude(){
   const next=IL_DATA[curIL-1].next;
-  if(next===2){
+  if(next==='bm'){
+    showScreen('bonus-mem','fading');initBonusMem();
+  } else if(next==='bw'){
+    showScreen('bonus-wire','fading');initBonusWire();
+  } else if(next==='bg'){
+    showScreen('bonus-gear','fading');initBonusGear();
+  } else if(next==='bp'){
+    showScreen('bonus-pipe','fading');initBonusPipe();
+  } else if(next===2){
     // Room 2: outils — anime intro only
     playAnime(ROOM_ANIME[1],()=>{showScreen('room2','fading');initR2();updateProg(2)});
   } else if(next===3){
@@ -2927,8 +3108,12 @@ function continueFromInterlude(){
   } else if(next===6){
     const animeIdx=5;
     playAnime(ROOM_ANIME[animeIdx],()=>{showScreen('room6','fading');initR6();updateProg(6)});
+  } else if(next==='mem'){
+    playAnime(ROOM_ANIME[8],()=>{showScreen('room-mem','fading');initMem();updateProg(9)});
+  } else if(next==='pipe'){
+    playAnime(ROOM_ANIME[9],()=>{showScreen('room-pipe','fading');initPipe();updateProg(10)});
   } else if(next===8){
-    showScreen('final','fading');updateProg(8);
+    showScreen('final','fading');updateProg(11);
   }
 }
 
@@ -3142,7 +3327,7 @@ function checkChain(){
 function nci(el,ni){el.value=el.value.replace(/\D/g,'');if(el.value.length>=1&&ni<=6)document.getElementById('ci-'+ni).focus()}
 function checkFull(){document.getElementById('ci-6').value=document.getElementById('ci-6').value.replace(/\D/g,'')}
 function checkFinal(){
-  const entered=['ci-0','ci-1','ci-2','ci-3','ci-4','ci-5','ci-6','ci-7'].map(id=>document.getElementById(id).value.trim()).join('');
+  const entered=['ci-0','ci-1','ci-2','ci-3','ci-4','ci-5','ci-6','ci-7','ci-8','ci-9'].map(id=>document.getElementById(id).value.trim()).join('');
   if(entered===SECRET_CODE){
     stopTimer();document.getElementById('cerr').style.display='none';
     const used=Math.floor((Date.now()-startTime)/1000);
@@ -3151,7 +3336,7 @@ function checkFinal(){
     playWinAnimation(()=>{showScreen('win','fading');document.getElementById('game-header').classList.remove('visible');launchConfetti()});
   }else{
     errs++;document.getElementById('cerr').style.display='block';
-    ['ci-0','ci-1','ci-2','ci-3','ci-4','ci-5','ci-6','ci-7'].forEach(id=>{const el=document.getElementById(id);el.classList.add('error');setTimeout(()=>el.classList.remove('error'),600)});
+    ['ci-0','ci-1','ci-2','ci-3','ci-4','ci-5','ci-6','ci-7','ci-8','ci-9'].forEach(id=>{const el=document.getElementById(id);el.classList.add('error');setTimeout(()=>el.classList.remove('error'),600)});
   }
 }
 function toggleHint(){const h=document.getElementById('hintbox');h.style.display=h.style.display==='none'?'block':'none'}
@@ -3165,6 +3350,679 @@ function launchConfetti(){
   const cols=['#7c3aed','#00e5ff','#5cb85c','#e05','#ffbb00','#fff'];
   const s=document.createElement('style');s.textContent='@keyframes cff{to{top:110vh;opacity:0;transform:rotate(720deg)}}';document.head.appendChild(s);
   for(let i=0;i<120;i++){const el=document.createElement('div'),sz=4+Math.random()*9;el.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-20px;width:${sz}px;height:${sz}px;background:${cols[Math.floor(Math.random()*cols.length)]};border-radius:${Math.random()>.5?'50%':'2px'};z-index:9001;pointer-events:none;animation:cff ${1.2+Math.random()*2}s ${Math.random()}s ease-in forwards`;document.body.appendChild(el);setTimeout(()=>el.remove(),4500)}
+}
+
+
+// ══ MEMORY GAME ═══════════════════════════════════════════════════════════════
+const MEM_DATA=[
+  {pid:0,type:'tool',ico:'🔧',txt:'Clé à molette'},
+  {pid:0,type:'def', ico:'',  txt:'Serre des boulons\nde tailles variées'},
+  {pid:1,type:'tool',ico:'📐',txt:'Pied à coulisse'},
+  {pid:1,type:'def', ico:'',  txt:'Mesure une dimension\navec précision'},
+  {pid:2,type:'tool',ico:'⚡',txt:'Multimètre'},
+  {pid:2,type:'def', ico:'',  txt:'Mesure tension,\nintensité, résistance'},
+  {pid:3,type:'tool',ico:'🔩',txt:'Clé dynamométrique'},
+  {pid:3,type:'def', ico:'',  txt:'Serrage au couple\nprécis (en Nm)'},
+];
+let memCards=[],memFlipped=[],memMatched=0,memLock=false,memErrCount=0;
+
+function initMem(){
+  memCards=shuffle([...MEM_DATA]);
+  memFlipped=[];memMatched=0;memLock=false;memErrCount=0;
+  const grid=document.getElementById('mem-grid');grid.innerHTML='';
+  memCards.forEach((card,i)=>{
+    const div=document.createElement('div');div.className='mem-card';div.id='mc-'+i;
+    const cls=card.type==='tool'?'mem-tool':'mem-def';
+    const ico=card.ico?`<span class="mem-ico">${card.ico}</span>`:'';
+    div.innerHTML=`<div class="mem-inner">
+      <div class="mem-back">⚙</div>
+      <div class="mem-front ${cls}">${ico}<span class="mem-txt">${card.txt.replace(/\n/g,'<br>')}</span></div>
+    </div>`;
+    div.onclick=()=>flipMem(i);
+    grid.appendChild(div);
+  });
+  document.getElementById('mem-status').textContent='0 / 4 paires trouvées';
+  document.getElementById('mem-errs').textContent='';
+}
+
+function flipMem(idx){
+  if(memLock)return;
+  const card=document.getElementById('mc-'+idx);
+  if(!card||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  memFlipped.push(idx);
+  if(memFlipped.length===2){
+    memLock=true;
+    const [a,b]=memFlipped;
+    const ca=memCards[a],cb=memCards[b];
+    if(ca.pid===cb.pid&&ca.type!==cb.type){
+      // Match!
+      setTimeout(()=>{
+        document.getElementById('mc-'+a).classList.add('matched');
+        document.getElementById('mc-'+b).classList.add('matched');
+        memMatched++;
+        spawnSparks();
+        document.getElementById('mem-status').textContent=memMatched+' / 4 paires trouvées ✅';
+        memFlipped=[];memLock=false;
+        if(memMatched===4){
+          currentRoom=9;
+          setTimeout(()=>showSuc(9),600);
+        }
+      },500);
+    }else{
+      // No match
+      memErrCount++;errs++;
+      document.getElementById('mem-errs').textContent='❌ Pas une paire ! ('+memErrCount+' erreur'+(memErrCount>1?'s':'')+')';
+      setTimeout(()=>{
+        document.getElementById('mc-'+a).classList.add('wrong-flash');
+        document.getElementById('mc-'+b).classList.add('wrong-flash');
+        setTimeout(()=>{
+          ['mc-'+a,'mc-'+b].forEach(id=>{
+            const el=document.getElementById(id);
+            el.classList.remove('flipped','wrong-flash');
+          });
+          memFlipped=[];memLock=false;
+        },550);
+      },700);
+    }
+  }
+}
+
+// ══ PIPE PUZZLE ════════════════════════════════════════════════════════════════
+// Directions: N=0 E=1 S=2 W=3
+// pipeConns: rotate base connections [d1,d2] by 'rot' steps (each step = +1 mod 4)
+const DR=[-1,0,1,0],DC=[0,1,0,-1],OPP=[2,3,0,1];
+function pipeConns(type,rot){
+  const base=type==='straight'?[3,1]:[0,1]; // straight:W-E  corner:N-E
+  return base.map(d=>(d+rot)%4);
+}
+
+// Puzzle definition: [row][col] = {t:'straight'|'corner', sr:solutionRotation} | null
+// Source: left of row 1 (needs W connection)
+// Sink:   right of row 3 (needs E connection)
+const PIPE_DEF=[
+  [null,            null,                  null,            null],
+  [{t:'straight',sr:0},{t:'corner',sr:2}, null,            null],
+  [null,            {t:'straight',sr:1},  null,            null],
+  [null,            {t:'corner',sr:0},    {t:'straight',sr:0},{t:'straight',sr:0}],
+];
+const CELL=80,OFFX=70,OFFY=18;
+let pipeGrid=[];
+
+function initPipe(){
+  pipeGrid=PIPE_DEF.map(row=>row.map(cell=>{
+    if(!cell)return null;
+    let r;
+    // Scramble but ensure not already correct
+    do{r=Math.floor(Math.random()*4)}while(r===cell.sr&&Math.random()>.25);
+    return{t:cell.t,sr:cell.sr,rot:r};
+  }));
+  const canvas=document.getElementById('pipe-canvas');
+  canvas.onclick=handlePipeClick;
+  drawPipeGrid();
+  document.getElementById('pipe-status').textContent='Aligne les tuyaux pour connecter le circuit...';
+}
+
+function handlePipeClick(e){
+  const canvas=document.getElementById('pipe-canvas');
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  const col=Math.floor((mx-OFFX)/CELL),row=Math.floor((my-OFFY)/CELL);
+  if(row<0||row>=4||col<0||col>=4)return;
+  const cell=pipeGrid[row][col];
+  if(!cell)return;
+  cell.rot=(cell.rot+1)%4;
+  drawPipeGrid();
+  if(checkPipeConnectivity()){
+    document.getElementById('pipe-status').textContent='✅ Circuit connecté ! Bravo !';
+    document.getElementById('pipe-status').style.color='var(--green)';
+    drawPipeGrid(true);
+    currentRoom=10;
+    setTimeout(()=>showSuc(10),900);
+  }
+}
+
+function checkPipeConnectivity(){
+  const start=pipeGrid[1][0];
+  if(!start)return false;
+  if(!pipeConns(start.t,start.rot).includes(3))return false; // needs W
+  const vis=Array.from({length:4},()=>Array(4).fill(false));
+  vis[1][0]=true;
+  const q=[{r:1,c:0}];
+  while(q.length){
+    const{r,c}=q.shift();
+    const cell=pipeGrid[r][c];if(!cell)continue;
+    const conns=pipeConns(cell.t,cell.rot);
+    if(r===3&&c===3&&conns.includes(1))return true; // at sink with E connection
+    conns.forEach(dir=>{
+      const nr=r+DR[dir],nc=c+DC[dir];
+      if(nr<0||nr>=4||nc<0||nc>=4||vis[nr][nc])return;
+      const nxt=pipeGrid[nr][nc];if(!nxt)return;
+      if(!pipeConns(nxt.t,nxt.rot).includes(OPP[dir]))return;
+      vis[nr][nc]=true;q.push({r:nr,c:nc});
+    });
+  }
+  return false;
+}
+
+function drawPipeGrid(solved){
+  const canvas=document.getElementById('pipe-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#09060e';ctx.fillRect(0,0,W,H);
+
+  // Grid cells
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      const x=OFFX+c*CELL,y=OFFY+r*CELL;
+      ctx.fillStyle='rgba(20,10,40,.7)';ctx.fillRect(x,y,CELL,CELL);
+      ctx.strokeStyle='rgba(80,40,160,.25)';ctx.lineWidth=1;ctx.strokeRect(x,y,CELL,CELL);
+    }
+  }
+
+  // Pipes
+  const connected=solved?true:checkPipeConnectivity();
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      const cell=pipeGrid[r][c];if(!cell)continue;
+      const cx=OFFX+c*CELL+CELL/2,cy=OFFY+r*CELL+CELL/2;
+      const conns=pipeConns(cell.t,cell.rot);
+      // Check if this cell is part of the solved path
+      const highlight=solved||(connected&&isCellOnPath(r,c));
+      const pipeCol=highlight?'rgba(0,229,255,.85)':'rgba(120,80,200,.75)';
+      const jointCol=highlight?'rgba(0,200,255,.9)':'rgba(150,100,220,.8)';
+      ctx.strokeStyle=pipeCol;ctx.lineWidth=16;ctx.lineCap='round';ctx.shadowColor=highlight?'rgba(0,229,255,.4)':'transparent';ctx.shadowBlur=highlight?8:0;
+      const offsets={0:[0,-1],1:[1,0],2:[0,1],3:[-1,0]};
+      conns.forEach(d=>{
+        const[dx,dy]=offsets[d];
+        ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+dx*CELL*.44,cy+dy*CELL*.44);ctx.stroke();
+      });
+      // Center joint
+      ctx.fillStyle=jointCol;ctx.shadowBlur=0;
+      ctx.beginPath();ctx.arc(cx,cy,9,0,Math.PI*2);ctx.fill();
+      // Rotation hint: small arrow
+      if(!solved){
+        ctx.fillStyle='rgba(255,255,255,.12)';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('↻',cx,cy+CELL*.35);
+      }
+    }
+  }
+  ctx.shadowBlur=0;
+
+  // Source indicator
+  const srcY=OFFY+1*CELL+CELL/2;
+  ctx.fillStyle=connected?'#5cb85c':'#00e5ff';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=10;
+  ctx.beginPath();ctx.arc(OFFX-22,srcY,8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.7)';ctx.font='bold 7px "Share Tech Mono"';ctx.textAlign='center';
+  ctx.fillText('SOURCE',OFFX-22,srcY+18);
+
+  // Sink indicator
+  const snkY=OFFY+3*CELL+CELL/2;
+  ctx.fillStyle=connected?'#5cb85c':'rgba(92,184,92,.5)';ctx.shadowColor='#5cb85c';ctx.shadowBlur=connected?12:4;
+  ctx.beginPath();ctx.arc(OFFX+4*CELL+22,snkY,8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=connected?'#5cb85c':'rgba(92,184,92,.6)';ctx.font='bold 7px "Share Tech Mono"';ctx.textAlign='center';
+  ctx.fillText('ARRIVÉE',OFFX+4*CELL+22,snkY+18);
+  ctx.shadowBlur=0;
+
+  // Animated flow dots when solved
+  if(connected&&solved){
+    const now=Date.now()/1000;
+    const path=getPipePath();
+    if(path.length>1){
+      for(let di=0;di<3;di++){
+        const t=((now*0.5+di/3)%1);
+        const idx=t*(path.length-1);
+        const ia=Math.floor(idx),ib=Math.min(ia+1,path.length-1);
+        const frac=idx-ia;
+        const[r1,c1]=path[ia],[r2,c2]=path[ib];
+        const px=OFFX+(c1+(c2-c1)*frac)*CELL+CELL/2;
+        const py=OFFY+(r1+(r2-r1)*frac)*CELL+CELL/2;
+        ctx.fillStyle='rgba(0,255,255,.9)';ctx.shadowColor='#0ff';ctx.shadowBlur=10;
+        ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+        ctx.shadowBlur=0;
+      }
+    }
+  }
+}
+
+function isCellOnPath(tr,tc){
+  const start=pipeGrid[1][0];
+  if(!start||!pipeConns(start.t,start.rot).includes(3))return false;
+  const vis=Array.from({length:4},()=>Array(4).fill(false));
+  vis[1][0]=true;const q=[{r:1,c:0}];
+  while(q.length){
+    const{r,c}=q.shift();
+    if(r===tr&&c===tc)return true;
+    const cell=pipeGrid[r][c];if(!cell)continue;
+    pipeConns(cell.t,cell.rot).forEach(dir=>{
+      const nr=r+DR[dir],nc=c+DC[dir];
+      if(nr<0||nr>=4||nc<0||nc>=4||vis[nr][nc])return;
+      const nxt=pipeGrid[nr][nc];if(!nxt)return;
+      if(!pipeConns(nxt.t,nxt.rot).includes(OPP[dir]))return;
+      vis[nr][nc]=true;q.push({r:nr,c:nc});
+    });
+  }
+  return false;
+}
+
+function getPipePath(){
+  const path=[];
+  const start=pipeGrid[1][0];
+  if(!start||!pipeConns(start.t,start.rot).includes(3))return path;
+  const vis=Array.from({length:4},()=>Array(4).fill(false));
+  vis[1][0]=true;path.push([1,0]);
+  let r=1,c=0;
+  while(true){
+    const cell=pipeGrid[r][c];if(!cell)break;
+    const conns=pipeConns(cell.t,cell.rot);
+    let moved=false;
+    for(const dir of conns){
+      const nr=r+DR[dir],nc=c+DC[dir];
+      if(nr<0||nr>=4||nc<0||nc>=4||vis[nr][nc])continue;
+      const nxt=pipeGrid[nr][nc];if(!nxt)continue;
+      if(!pipeConns(nxt.t,nxt.rot).includes(OPP[dir]))continue;
+      vis[nr][nc]=true;path.push([nr,nc]);r=nr;c=nc;moved=true;break;
+    }
+    if(!moved)break;
+  }
+  return path;
+}
+
+
+// ══ BONUS GAME HELPER ══════════════════════════════════════════════════════════
+function continueBonusGame(nextRoom){
+  const animeIdx=nextRoom-1;
+  const roomSpecials={3:()=>playRoom3Scene(()=>playAnime(ROOM_ANIME[2],()=>{showScreen('room3','fading');initR3();updateProg(3)})),
+    4:()=>playRoom4Scene(()=>playAnime(ROOM_ANIME[3],()=>{showScreen('room4','fading');initR4();updateProg(4)})),
+    5:()=>playRoom5Scene(()=>playAnime(ROOM_ANIME[4],()=>{showScreen('room5','fading');initR5();updateProg(5)}))};
+  if(roomSpecials[nextRoom]) roomSpecials[nextRoom]();
+  else playAnime(ROOM_ANIME[animeIdx],()=>{showScreen('room'+nextRoom,'fading');window['initR'+nextRoom]();updateProg(nextRoom)});
+}
+
+// ══ BONUS 1: MEMORY (3 pairs, 6 cards) ════════════════════════════════════════
+const BMEM=[
+  {pid:0,type:'tool',ico:'⚙️',txt:'Engrenage'},
+  {pid:0,type:'def', ico:'',  txt:'Transmet\nle mouvement'},
+  {pid:1,type:'tool',ico:'🔩',txt:'Boulon'},
+  {pid:1,type:'def', ico:'',  txt:'Assemble\nles pièces'},
+  {pid:2,type:'tool',ico:'🔧',txt:'Clé plate'},
+  {pid:2,type:'def', ico:'',  txt:'Tourne\nles boulons'},
+];
+let bmFlipped=[],bmMatched=0,bmLock=false,bmCards=[];
+function initBonusMem(){
+  bmCards=shuffle([...BMEM]);bmFlipped=[];bmMatched=0;bmLock=false;
+  const grid=document.getElementById('bmem-grid');grid.innerHTML='';
+  bmCards.forEach((c,i)=>{
+    const div=document.createElement('div');div.className='mem-card';div.id='bmc-'+i;
+    const cls=c.type==='tool'?'mem-tool':'mem-def';
+    const ico=c.ico?`<span class="mem-ico">${c.ico}</span>`:'';
+    div.innerHTML=`<div class="mem-inner"><div class="mem-back">🔩</div>
+      <div class="mem-front ${cls}">${ico}<span class="mem-txt">${c.txt.replace(/\n/g,'<br>')}</span></div></div>`;
+    div.onclick=()=>flipBMem(i);grid.appendChild(div);
+  });
+  document.getElementById('bmem-status').textContent='0 / 3 paires';
+  document.getElementById('bmem-btn').style.display='none';
+}
+function flipBMem(idx){
+  if(bmLock)return;
+  const card=document.getElementById('bmc-'+idx);
+  if(!card||card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');bmFlipped.push(idx);
+  if(bmFlipped.length===2){
+    bmLock=true;const[a,b]=bmFlipped;const ca=bmCards[a],cb=bmCards[b];
+    if(ca.pid===cb.pid&&ca.type!==cb.type){
+      setTimeout(()=>{
+        document.getElementById('bmc-'+a).classList.add('matched');
+        document.getElementById('bmc-'+b).classList.add('matched');
+        bmMatched++;spawnSparks();
+        document.getElementById('bmem-status').textContent=bmMatched+' / 3 paires ✅';
+        bmFlipped=[];bmLock=false;
+        if(bmMatched===3){document.getElementById('bmem-btn').style.display='inline-block'}
+      },450);
+    }else{
+      errs++;
+      setTimeout(()=>{
+        ['bmc-'+a,'bmc-'+b].forEach(id=>{const el=document.getElementById(id);el.classList.add('wrong-flash');
+          setTimeout(()=>el.classList.remove('flipped','wrong-flash'),550)});
+        bmFlipped=[];bmLock=false;
+      },700);
+    }
+  }
+}
+
+// ══ BONUS 2: WIRE GAME ═════════════════════════════════════════════════════════
+const WIRE_DEF=[
+  {id:0,col:'#00e5ff',label:'NEUTRE'},
+  {id:1,col:'#ff4466',label:'PHASE'},
+  {id:2,col:'#ffbb00',label:'SIGNAL'},
+  {id:3,col:'#5cb85c',label:'TERRE'},
+];
+let wireSel=null,wireConn={},wireDstOrder=[];
+function initBonusWire(){
+  wireSel=null;wireConn={};
+  wireDstOrder=shuffle([0,1,2,3]);
+  const srcCol=document.getElementById('wire-src-col');
+  const dstCol=document.getElementById('wire-dst-col');
+  srcCol.innerHTML='';dstCol.innerHTML='';
+  document.getElementById('wire-svg').innerHTML='';
+  WIRE_DEF.forEach((w,i)=>{
+    const s=document.createElement('div');s.className='wire-term';s.id='wsrc-'+w.id;
+    s.style.cssText=`border-color:${w.col};color:${w.col}`;
+    s.textContent=w.label;s.dataset.id=w.id;s.onclick=()=>selectWireSrc(w.id);
+    srcCol.appendChild(s);
+  });
+  wireDstOrder.forEach(wid=>{
+    const w=WIRE_DEF[wid];
+    const d=document.createElement('div');d.className='wire-term';d.id='wdst-'+w.id;
+    d.style.cssText=`border-color:${w.col};color:${w.col}`;
+    d.innerHTML='<span style="font-size:20px">⚡</span>';d.dataset.id=w.id;
+    d.onclick=()=>connectWire(w.id);dstCol.appendChild(d);
+  });
+  document.getElementById('wire-status').textContent='0 / 4 fils connectés';
+  document.getElementById('bwire-btn').style.display='none';
+  document.getElementById('wire-status').style.color='var(--muted)';
+}
+function selectWireSrc(id){
+  if(wireConn[id]!==undefined)return;
+  if(wireSel!==null) document.getElementById('wsrc-'+wireSel)?.classList.remove('wselected');
+  wireSel=id;
+  const el=document.getElementById('wsrc-'+id);
+  el.classList.add('wselected');el.style.boxShadow=`0 0 16px ${WIRE_DEF[id].col}`;
+}
+function connectWire(dstId){
+  if(wireSel===null)return;
+  if(wireConn[wireSel]!==undefined)return;
+  const srcEl=document.getElementById('wsrc-'+wireSel);
+  srcEl.classList.remove('wselected');srcEl.style.boxShadow='';
+  if(wireSel===dstId){
+    // Correct!
+    wireConn[wireSel]=dstId;
+    document.getElementById('wsrc-'+wireSel).classList.add('wmatched');
+    document.getElementById('wdst-'+dstId).classList.add('wmatched');
+    drawWireLine(wireSel,dstId);spawnSparks();
+    const done=Object.keys(wireConn).length;
+    document.getElementById('wire-status').textContent=done+' / 4 fils connectés'+(done===4?' ✅':'');
+    if(done===4){document.getElementById('wire-status').style.color='var(--green)';document.getElementById('bwire-btn').style.display='inline-block'}
+  }else{
+    // Wrong
+    errs++;
+    document.getElementById('wire-status').textContent='❌ Mauvaise connexion ! Essaie encore.';
+    document.getElementById('wire-status').style.color='var(--red)';
+    setTimeout(()=>{
+      const c=Object.keys(wireConn).length;
+      document.getElementById('wire-status').textContent=c+' / 4 fils connectés';
+      document.getElementById('wire-status').style.color='var(--muted)';
+    },800);
+  }
+  wireSel=null;
+}
+function drawWireLine(srcId,dstId){
+  const svg=document.getElementById('wire-svg');
+  const srcEl=document.getElementById('wsrc-'+srcId);
+  const dstEl=document.getElementById('wdst-'+dstId);
+  if(!srcEl||!dstEl)return;
+  const sr=srcEl.getBoundingClientRect(),dr=dstEl.getBoundingClientRect();
+  const wr=svg.getBoundingClientRect();
+  const x1=sr.right-wr.left,y1=sr.top+sr.height/2-wr.top;
+  const x2=dr.left-wr.left,y2=dr.top+dr.height/2-wr.top;
+  const col=WIRE_DEF[srcId].col;
+  const line=document.createElementNS('http://www.w3.org/2000/svg','path');
+  const cx=(x1+x2)/2;
+  line.setAttribute('d',`M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
+  line.setAttribute('stroke',col);line.setAttribute('stroke-width','4');
+  line.setAttribute('fill','none');line.setAttribute('opacity','0.85');
+  line.style.filter=`drop-shadow(0 0 4px ${col})`;
+  svg.appendChild(line);
+}
+
+// ══ BONUS 3: GEAR PLACEMENT ════════════════════════════════════════════════════
+// Motor A=20T fixed. B must be 10T (2x faster). C must be 40T (2x slower).
+const GEAR_OPTS=[{teeth:10,label:'10 dents',id:'g10'},{teeth:20,label:'20 dents',id:'g20'},
+  {teeth:30,label:'30 dents',id:'g30'},{teeth:40,label:'40 dents',id:'g40'}];
+const GEAR_CORRECT={B:10,C:40};
+let gearSel=null,gearPlaced={B:null,C:null},gearAngle=0,gearAnim=null;
+
+function initBonusGear(){
+  gearSel=null;gearPlaced={B:null,C:null};gearAngle=0;
+  if(gearAnim)cancelAnimationFrame(gearAnim);
+  const opts=document.getElementById('gear-options');opts.innerHTML='';
+  GEAR_OPTS.forEach(g=>{
+    const btn=document.createElement('button');btn.className='gear-opt';btn.id='gopt-'+g.id;
+    btn.textContent=g.label;btn.onclick=()=>selectGearOpt(g);opts.appendChild(btn);
+  });
+  document.getElementById('gear-status').textContent='Sélectionne une roue puis clique sur le slot B ou C';
+  document.getElementById('gear-status').style.color='var(--muted)';
+  document.getElementById('bgear-btn').style.display='none';
+  drawGears();
+}
+function selectGearOpt(g){
+  if(document.getElementById('gopt-'+g.id).classList.contains('gused'))return;
+  document.querySelectorAll('.gear-opt').forEach(b=>b.classList.remove('gsel'));
+  document.getElementById('gopt-'+g.id).classList.add('gsel');
+  gearSel=g;
+  document.getElementById('gear-status').textContent='Roue de '+g.label+' sélectionnée — clique sur B ou C';
+}
+function handleGearClick(e){
+  if(!gearSel)return;
+  const canvas=document.getElementById('gear-canvas');
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  // Slot B: center around x=200,y=110  Slot C: center around x=350,y=110
+  const slots=[{name:'B',cx:195,cy:110,r:55},{name:'C',cx:355,cy:110,r:55}];
+  for(const slot of slots){
+    const dist=Math.sqrt((mx-slot.cx)**2+(my-slot.cy)**2);
+    if(dist<slot.r&&gearPlaced[slot.name]===null){
+      placeGear(slot.name,gearSel);return;
+    }
+  }
+}
+function placeGear(slot,g){
+  gearPlaced[slot]=g;
+  document.getElementById('gopt-'+g.id).classList.add('gused');
+  document.getElementById('gopt-'+g.id).classList.remove('gsel');
+  gearSel=null;
+  drawGears();
+  checkGearPlacement();
+}
+function checkGearPlacement(){
+  const B=gearPlaced.B,C=gearPlaced.C;
+  if(!B||!C)return;
+  const okB=B.teeth===GEAR_CORRECT.B,okC=C.teeth===GEAR_CORRECT.C;
+  if(okB&&okC){
+    document.getElementById('gear-status').textContent='✅ Parfait ! B tourne 2× plus vite, C 2× plus lentement !';
+    document.getElementById('gear-status').style.color='var(--green)';
+    document.getElementById('bgear-btn').style.display='inline-block';
+    spawnSparks();
+  }else{
+    errs++;
+    document.getElementById('gear-status').textContent='❌ Incorrect ! '+(okB?'B est juste':B.teeth+' dents pour B = '+(20/B.teeth).toFixed(1)+'× la vitesse')+' | '+(okC?'C est juste':C.teeth+' dents pour C = '+(20/C.teeth).toFixed(1)+'× la vitesse');
+    document.getElementById('gear-status').style.color='var(--red)';
+    // Reset wrong slots
+    setTimeout(()=>{
+      if(!okB){
+        if(gearPlaced.B){document.getElementById('gopt-'+gearPlaced.B.id).classList.remove('gused');gearPlaced.B=null}
+      }
+      if(!okC){
+        if(gearPlaced.C){document.getElementById('gopt-'+gearPlaced.C.id).classList.remove('gused');gearPlaced.C=null}
+      }
+      document.getElementById('gear-status').textContent='Essaie encore !';
+      document.getElementById('gear-status').style.color='var(--muted)';
+      drawGears();
+    },1400);
+  }
+}
+function drawGears(){
+  const canvas=document.getElementById('gear-canvas');
+  if(!canvas)return;
+  canvas.onclick=handleGearClick;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#09060e';ctx.fillRect(0,0,W,H);
+  // Draw connection lines
+  ctx.strokeStyle='rgba(80,40,160,.25)';ctx.lineWidth=3;
+  ctx.setLineDash([8,6]);
+  ctx.beginPath();ctx.moveTo(90,110);ctx.lineTo(420,110);ctx.stroke();
+  ctx.setLineDash([]);
+  gearAngle+=0.02;
+  // Gear A: motor, 20T, x=60,y=110, r=40
+  drawGearShape(ctx,60,110,40,20,gearAngle,'rgba(0,229,255,.8)','A\n20T',true);
+  // Link gear A→B: opposite direction
+  const bData=gearPlaced.B;
+  const bR=bData?Math.min(bData.teeth*2,70):50;
+  const bAngle=bData?-gearAngle*(20/bData.teeth):0;
+  const bCol=bData?(bData.teeth===GEAR_CORRECT.B?'rgba(92,184,92,.8)':'rgba(224,123,0,.8)'):'rgba(60,40,100,.5)';
+  drawGearShape(ctx,195,110,bR,bData?bData.teeth:null,bAngle,bCol,'B'+(bData?'\n'+bData.teeth+'T':''),!!bData);
+  // Gear C: opposite to A direction
+  const cData=gearPlaced.C;
+  const cR=cData?Math.min(cData.teeth*2,70):50;
+  const cAngle=cData?-gearAngle*(20/cData.teeth):0;
+  const cCol=cData?(cData.teeth===GEAR_CORRECT.C?'rgba(92,184,92,.8)':'rgba(224,123,0,.8)'):'rgba(60,40,100,.5)';
+  drawGearShape(ctx,355,110,cR,cData?cData.teeth:null,cAngle,cCol,'C'+(cData?'\n'+cData.teeth+'T':''),!!cData);
+  // Labels
+  ctx.fillStyle='rgba(200,180,255,.6)';ctx.font='bold 11px "Barlow"';ctx.textAlign='center';
+  if(!bData) ctx.fillText('Cliquer pour\nplacer B',195,H-28);
+  if(!cData) ctx.fillText('Cliquer pour\nplacer C',355,H-28);
+  gearAnim=requestAnimationFrame(drawGears);
+}
+function drawGearShape(ctx,cx,cy,r,teeth,angle,col,label,active){
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);
+  // Teeth
+  if(teeth&&active){
+    ctx.strokeStyle=col;ctx.lineWidth=5;
+    for(let i=0;i<teeth;i++){
+      const a=i*Math.PI*2/teeth;
+      ctx.beginPath();ctx.moveTo(Math.cos(a)*(r-4),Math.sin(a)*(r-4));
+      ctx.lineTo(Math.cos(a)*(r+8),Math.sin(a)*(r+8));ctx.stroke();
+    }
+  }
+  // Body
+  ctx.strokeStyle=col;ctx.lineWidth=3;ctx.fillStyle=active?col.replace('.8','.12'):col.replace('.8','.05').replace('.5','.04');
+  ctx.shadowColor=active?col:'transparent';ctx.shadowBlur=active?8:0;
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // Hub
+  ctx.fillStyle=col.replace('.8','.3').replace('.5','.2');
+  ctx.beginPath();ctx.arc(0,0,r*.3,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.restore();
+  // Label
+  ctx.shadowBlur=0;ctx.fillStyle=active?'#fff':'rgba(120,80,200,.5)';
+  ctx.font='bold 11px "Barlow"';ctx.textAlign='center';ctx.textBaseline='middle';
+  const lines=label.split('\n');
+  lines.forEach((l,i)=>ctx.fillText(l,cx,cy+(i-(lines.length-1)/2)*14));
+  ctx.textBaseline='alphabetic';
+}
+
+// ══ BONUS 4: PIPE (different layout) ══════════════════════════════════════════
+// Source: left of row 0 | Sink: right of row 3
+// Path: (0,0)→(0,1)→(1,1)→(2,1)→(2,2)→(3,2)→(3,3)
+const BPIPE_DEF=[
+  [{t:'straight',sr:0},{t:'corner',sr:2},null,null],
+  [null,{t:'straight',sr:1},null,null],
+  [null,{t:'corner',sr:0},{t:'corner',sr:2},null],
+  [null,null,{t:'corner',sr:0},{t:'straight',sr:0}],
+];
+let bpipeGrid=[];
+function initBonusPipe(){
+  bpipeGrid=BPIPE_DEF.map(row=>row.map(cell=>{
+    if(!cell)return null;
+    let r;do{r=Math.floor(Math.random()*4)}while(r===cell.sr&&Math.random()>.25);
+    return{t:cell.t,sr:cell.sr,rot:r};
+  }));
+  const canvas=document.getElementById('bonus-pipe-canvas');
+  canvas.onclick=handleBPipeClick;
+  drawBPipeGrid();
+  document.getElementById('bpipe-status').textContent='Aligne les tuyaux...';
+  document.getElementById('bpipe-status').style.color='var(--muted)';
+  document.getElementById('bpipe-btn').style.display='none';
+}
+function handleBPipeClick(e){
+  const canvas=document.getElementById('bonus-pipe-canvas');
+  const rect=canvas.getBoundingClientRect();
+  const col=Math.floor((e.clientX-rect.left-OFFX)/CELL);
+  const row=Math.floor((e.clientY-rect.top-OFFY)/CELL);
+  if(row<0||row>=4||col<0||col>=4)return;
+  const cell=bpipeGrid[row][col];if(!cell)return;
+  cell.rot=(cell.rot+1)%4;
+  drawBPipeGrid();
+  if(checkBPipe()){
+    document.getElementById('bpipe-status').textContent='✅ Circuit connecté !';
+    document.getElementById('bpipe-status').style.color='var(--green)';
+    drawBPipeGrid(true);spawnSparks();
+    document.getElementById('bpipe-btn').style.display='inline-block';
+  }
+}
+function checkBPipe(){
+  const s=bpipeGrid[0][0];if(!s||!pipeConns(s.t,s.rot).includes(3))return false;
+  const vis=Array.from({length:4},()=>Array(4).fill(false));vis[0][0]=true;
+  const q=[{r:0,c:0}];
+  while(q.length){
+    const{r,c}=q.shift();const cell=bpipeGrid[r][c];if(!cell)continue;
+    const cn=pipeConns(cell.t,cell.rot);
+    if(r===3&&c===3&&cn.includes(1))return true;
+    cn.forEach(dir=>{
+      const nr=r+DR[dir],nc=c+DC[dir];
+      if(nr<0||nr>=4||nc<0||nc>=4||vis[nr][nc])return;
+      const nx=bpipeGrid[nr][nc];if(!nx)return;
+      if(!pipeConns(nx.t,nx.rot).includes(OPP[dir]))return;
+      vis[nr][nc]=true;q.push({r:nr,c:nc});
+    });
+  }
+  return false;
+}
+function drawBPipeGrid(solved){
+  const canvas=document.getElementById('bonus-pipe-canvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#09060e';ctx.fillRect(0,0,W,H);
+  for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+    const x=OFFX+c*CELL,y=OFFY+r*CELL;
+    ctx.fillStyle='rgba(20,10,40,.7)';ctx.fillRect(x,y,CELL,CELL);
+    ctx.strokeStyle='rgba(80,40,160,.25)';ctx.lineWidth=1;ctx.strokeRect(x,y,CELL,CELL);
+    const cell=bpipeGrid[r][c];if(!cell)continue;
+    const cx2=OFFX+c*CELL+CELL/2,cy2=OFFY+r*CELL+CELL/2;
+    const cn=pipeConns(cell.t,cell.rot);
+    const hi=solved||(checkBPipe()&&isBPipeOnPath(r,c));
+    ctx.strokeStyle=hi?'rgba(0,229,255,.85)':'rgba(120,80,200,.75)';
+    ctx.lineWidth=16;ctx.lineCap='round';ctx.shadowColor=hi?'rgba(0,229,255,.4)':'transparent';ctx.shadowBlur=hi?8:0;
+    const offsets=[[0,-1],[1,0],[0,1],[-1,0]];
+    cn.forEach(d=>{const[dx,dy]=offsets[d];ctx.beginPath();ctx.moveTo(cx2,cy2);ctx.lineTo(cx2+dx*CELL*.44,cy2+dy*CELL*.44);ctx.stroke()});
+    ctx.fillStyle=hi?'rgba(0,200,255,.9)':'rgba(150,100,220,.8)';ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(cx2,cy2,9,0,Math.PI*2);ctx.fill();
+  }
+  ctx.shadowBlur=0;
+  // Source (left of row 0)
+  const conn=solved?true:checkBPipe();
+  ctx.fillStyle=conn?'#5cb85c':'#00e5ff';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=10;
+  ctx.beginPath();ctx.arc(OFFX-22,OFFY+CELL/2,8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.7)';ctx.font='bold 7px "Share Tech Mono"';ctx.textAlign='center';
+  ctx.fillText('SOURCE',OFFX-22,OFFY+CELL/2+18);
+  // Sink (right of row 3)
+  ctx.fillStyle=conn?'#5cb85c':'rgba(92,184,92,.5)';ctx.shadowColor='#5cb85c';ctx.shadowBlur=conn?12:4;
+  ctx.beginPath();ctx.arc(OFFX+4*CELL+22,OFFY+3*CELL+CELL/2,8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=conn?'#5cb85c':'rgba(92,184,92,.6)';ctx.font='bold 7px "Share Tech Mono"';ctx.textAlign='center';
+  ctx.fillText('ARRIVÉE',OFFX+4*CELL+22,OFFY+3*CELL+CELL/2+18);
+  ctx.shadowBlur=0;
+}
+function isBPipeOnPath(tr,tc){
+  const s=bpipeGrid[0][0];if(!s||!pipeConns(s.t,s.rot).includes(3))return false;
+  const vis=Array.from({length:4},()=>Array(4).fill(false));vis[0][0]=true;
+  const q=[{r:0,c:0}];
+  while(q.length){
+    const{r,c}=q.shift();if(r===tr&&c===tc)return true;
+    const cell=bpipeGrid[r][c];if(!cell)continue;
+    pipeConns(cell.t,cell.rot).forEach(dir=>{
+      const nr=r+DR[dir],nc=c+DC[dir];
+      if(nr<0||nr>=4||nc<0||nc>=4||vis[nr][nc])return;
+      const nx=bpipeGrid[nr][nc];if(!nx)return;
+      if(!pipeConns(nx.t,nx.rot).includes(OPP[dir]))return;
+      vis[nr][nc]=true;q.push({r:nr,c:nc});
+    });
+  }
+  return false;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
